@@ -6,10 +6,12 @@ mirna_fileName = 'GLIO_Mirna_Expression.txt';
 res_fileName = 'global_sample_spectrum.csv';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% read input data for program
-data_gene = readtable(gene_fileName, 'ReadRowNames', true);%, 'ReadVariableNames', true);
-data_Methy = readtable(methy_fileName, 'ReadRowNames', true);%, 'ReadVariableNames', true);
-data_Mirna = readtable(mirna_fileName, 'ReadRowNames', true);%, 'ReadVariableNames', true);
-
+data_gene = readtable(gene_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+data_gene = table2array(data_gene(:,1:215));%last column is an artefact of importation
+data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+data_Methy = table2array(data_Methy(:,1:215));
+data_Mirna = readtable(mirna_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+data_Mirna = table2array(data_Mirna(:,1:215));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% capture the local sample-spectrum for each biological data type by Algorithm_1
 data_1 = data_gene;
