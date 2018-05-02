@@ -1,14 +1,14 @@
 %% set input data and output filename
-gene_fileName = 'data_gene_expression.csv';
-methy_fileName = 'data_methy_expression.csv';
-mirna_fileName = 'data_mirna_expression.csv';
+gene_fileName = 'GLIO_Gene_Expression.txt';
+methy_fileName = 'GLIO_Methy_Expression.txt';
+mirna_fileName = 'GLIO_Mirna_Expression.txt';
 
 res_fileName = 'global_sample_spectrum.csv';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% read input data for program
-data_gene = xlsread(gene_fileName);
-data_Methy = xlsread(methy_fileName);
-data_Mirna = xlsread(mirna_fileName);
+data_gene = readtable(gene_fileName, 'ReadRowNames', true, 'ReadVariableNames', true);
+data_Methy = readtable(methy_fileName, 'ReadRowNames', true, 'ReadVariableNames', true);
+data_Mirna = readtable(mirna_fileName, 'ReadRowNames', true, 'ReadVariableNames', true);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% capture the local sample-spectrum for each biological data type by Algorithm_1
@@ -60,4 +60,4 @@ lam_1 = 1;
 
 [Y,w,L_1,L_2,L_3] = Algorithm_4(x_1, x_2, x_3, sample_num, iter_num,  lam_1, d_num);%% Y is the global sample-spectrum
 
-xlswrite(res_fileName,Y);
+csvwrite(res_fileName,Y);
