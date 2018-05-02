@@ -1,7 +1,7 @@
 %% set input data and output filename
-gene_fileName = 'GLIO_Gene_expression.csv';
-methy_fileName = 'GLIO_Methy_expression.csv';
-mirna_fileName = 'GLIO_Mirna_expression.csv';
+gene_fileName = 'GLIO_Gene_Expression.csv';
+methy_fileName = 'GLIO_Methy_Expression.csv';
+mirna_fileName = 'GLIO_Mirna_Expression.csv';
 
 res_fileName = 'global_sample_spectrum.csv';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
