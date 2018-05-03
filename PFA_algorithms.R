@@ -1,8 +1,16 @@
-#All the algorithm of PFA
+# PFA_algorithms.R
+# author: Romain GUEDON
+
+#### Description ####
+
+# Here is the R version of the Pattern Fusion Analysis (PFA)
 # article link:
 
+# The variables's names are those of the article 
+# most of the time
 
-####Algorithm 1####
+
+#### Algorithm 1 ####
 
 # INPUT:
 #
@@ -59,15 +67,101 @@ algorithm_1 <- function(X_i_data) {
   # Compute Y_i:
   Y_i <-  t(as.matrix(eigs$vectors[,1:d_i])) %*% X_i_bar
   colnames(Y_i) <- colnames(X_i)
-  return(Y_i)
+  return(list(Y_i, d_i))
 }
 
 
 
 
-####Algorithm 2####
-algorithm_2 <- function(Delta) {
+
+#### Algorithm 2 ####
+
+# Algorithm to calculate optimal weight matrix W
+
+
+
+
+
+
+# phiCalc <- function(Y_i, )
+
+
+algorithm_2 <- function(Delta,M) {
+  for (N in 1:M) {
+    
+  }
   
+  
+}
+
+
+#### Algorithm 3 ####
+
+algorithm_3 <- function(Ys_ds_list, k, n, lambda) {
+  # Ys_ds_list is the result of the function algorithm_1
+  # k is the number of data types
+  # n is the number of patients/samples
+  # lambda is the tuning parameter
+  
+  # Extract Ys and ds 
+  Ys_list <- Ys_ds_list[[1]]
+  ds_list <- Ys_ds_list[[2]]
+  
+  # Set d
+  d = min(ds_list)
+  
+  # Initialize W
+  M <- k*n
+  W <- matrix(1, M, 1)
+  
+  
+  
+  # Optimize Y according to formula (10) in main text:
+  
+    # Calculate Phi
+  
+  
+  Phi <- matrix(0,n,n)
+  for (i in 1:k) {
+    W_i <- diag(W[(i-1)*n + 1, i*n])
+    tmp <- (diag(1,n,n) - (1/n)*matrix(1,n,n)) 
+            %*%
+            (diag(1,n,n) - ginv(Ys_list[[i]]%*%W_i)%*%(Ys_list[[i]]%*%W_i))  
+    
+    Phi <- Phi + (1/norm(tmp,type = "F"))*(tmp%*%t(tmp))
+  }
+  
+    # Compute the eigens of Phi
+  
+  eigsPhi <- eigen(x = Phi, symmetric = TRUE)
+  Y <- eigsPhi$vectors[n:n-d+1] #vectors of the d smallest eigen values
+  
+  
+  # Optimizing W according to Algorithm 2
+  
+  
+
+  
+  
+}
+
+    
+#### Algorithm 4 ####
+
+# it's the terative updating process for PFA
+
+algorithm_4 <- function(X_list, d_list, lambda) {
+  # X_list = [X_1, X_2, ..., X_k]
+  # d_list = [d_1, d_2, ..., d_k]
+  # lamda is the tuning parameter
+  
+  # Computing the local sample-spectrum 
+  # of each data type according to Algorithm 1:
+  local_Ys <- lapply(X_list, algorithm_1)
+  
+  
+  # Optimizing Y according to Algorithm 3:
+  algorithm_3()
   
   
 }

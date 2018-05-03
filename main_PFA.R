@@ -29,8 +29,10 @@ data_list <- lapply(fileName_list, read.table)
 
 ## Capture the local sample-spectrum for each biological data type
 
-local_Ys <- lapply(data_list, algorithm_1)
-#View(local_Ys[[3]])
+Ys_ds_list <- lapply(data_list, algorithm_1)
+
+Ys_list <- Ys_ds_list[[1]]
+ds_list <- list()
 
 
 
