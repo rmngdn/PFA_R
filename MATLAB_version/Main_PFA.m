@@ -2,10 +2,11 @@
 gene_fileName = 'GLIO_Gene_Expression.txt';
 methy_fileName = 'GLIO_Methy_Expression.txt';
 mirna_fileName = 'GLIO_Mirna_Expression.txt';
-
+test = 'data_mirna_expression.csv'
 res_fileName = 'global_sample_spectrum.csv';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% read input data for program
+data_test = csvread(test,1,1)
 data_gene = readtable(gene_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
 data_gene = table2array(data_gene(:,1:215));%last column is an artefact of importation
 data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 

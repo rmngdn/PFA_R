@@ -86,11 +86,27 @@ algorithm_1 <- function(X_i_data) {
 # phiCalc <- function(Y_i, )
 
 
-algorithm_2 <- function(Delta,M) {
-  for (N in 1:M) {
-    
+algorithm_2 <- function(delta,lambda,M) {
+  # we're looking for the maximum m s.t. theta - phi_m > 0
+  # so we start with m=M, decreasingly and stop when the condition 
+  # is satisfied
+  for (m in M:1) {
+    theta <- (2*lambda + sum(delta[1:m]))/m
+    if (theta - delta[m] > 0) {
+      N <- m
+      break 
+    }
   }
+  wcalc <- function(m,N,delta,lambda) {
+    if (m<=N){}
+    
+    
+    
   
+    theta <- (2*lambda + sum(delta[1:m]))/m
+    return(test*(theta - delta[m])/
+  }
+  W[1:N] <- lapply()
   
 }
 
@@ -121,14 +137,17 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda) {
     # Calculate Phi
   
   
-  Phi <- matrix(0,n,n)
+  Phi <- matrix(0, n, n)
+  W_List <- vector('list', k)
+  V_List <- vector('list', k)
   for (i in 1:k) {
     W_i <- diag(W[(i-1)*n + 1, i*n])
+    W_List[i] <- W_i #used later to calculate delta
     tmp <- (diag(1,n,n) - (1/n)*matrix(1,n,n)) 
             %*%
             (diag(1,n,n) - ginv(Ys_list[[i]]%*%W_i)%*%(Ys_list[[i]]%*%W_i))  
-    
-    Phi <- Phi + (1/norm(tmp,type = "F"))*(tmp%*%t(tmp))
+    V_List[i] <- norm(tmp,type = "F")#used later to calculate delta
+    Phi <- Phi + (1/V_List[i])*(tmp%*%t(tmp))
   }
   
     # Compute the eigens of Phi
@@ -140,6 +159,25 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda) {
   # Optimizing W according to Algorithm 2
   
   
+    # Calculate Delta:
+  delta <- vector('list', M)
+  for (i in 1:k) {
+    for (j in 1:n) {
+      delta[i*j] <-(norm(Y[,j]
+                        - Y%*%matrix(1,n,1)
+                        - Y%*%
+                          (diag(1,n,n) - (1/n)*matrix(1,n,n))
+                           %*%
+                           ginv(Ys_list[[i]]%*%W_List[[i]])
+                           %*%
+                           Ys_list[[i]][,j]
+                        , "F")^2)/norm(V_List[[i]],"F")
+    }
+  }
+  #sort it:
+  delta <- Delta[order(Delta)]
+  
+  algorithm_2(Delta, lambda)
 
   
   
