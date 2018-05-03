@@ -26,18 +26,20 @@ output_fileName <- "global_sample_spectrum.csv"
 
 # for example
 data_list <- lapply(fileName_list, read.table)
+
 ## Capture the local sample-spectrum for each biological data type
 
-#local_Ys <- lapply(data_list, algorithm_1)
+local_Ys <- lapply(data_list, algorithm_1)
+#View(local_Ys[[3]])
 
-Y2 <- algorithm_1(data_list[[2]])
-Y3 <- algorithm_1(data_list[[3]])
-#Y1 <- algorithm_1(data_list[[1]]) #too big
 
-## WHY IS IT SO LONG ? ##
 
-X <- as.matrix(data_list[[1]])
-n <- dim(X)[2]
-X_bar <- X %*% (diag(1,n,n) - (1/n)*matrix(1,n,n))
-R <- X_bar %*% t(X_bar) #1.1Gb
+
+
+
+
+
+
+
+
 
