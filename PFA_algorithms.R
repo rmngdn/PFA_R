@@ -82,9 +82,6 @@ algorithm_1 <- function(X_i_data) {
 
 
 
-# phiCalc <- function(Y_i, )
-
-
 algorithm_2 <- function(delta,lambda,M) {
   # we're looking for the maximum m s.t. theta - phi_m > 0
   # so we start with m=M, decreasingly and stop when the condition 
@@ -96,17 +93,11 @@ algorithm_2 <- function(delta,lambda,M) {
       break 
     }
   }
-  wcalc <- function(m,N,delta,lambda) {
-    if (m<=N){}
-    
-    
-    
-  
-    theta <- (2*lambda + sum(delta[1:m]))/m
-    return(test*(theta - delta[m])/
+  W <- matrix(0,M,1)
+  for (m in 1:N) {
+    W[m] <- ((2*lambda + sum(delta[1:m]))/m - delta[m])/(2*lambda) 
   }
-  W[1:N] <- lapply()
-  
+  return(W)
 }
 
 
@@ -168,9 +159,17 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
     if (iter==1){
       OldObjectiveValue <- NewObjectiveValue
     } else {
-      if (NewObjectiveValue - OldObjectiveValue < 0) #value is decreasing
+      if (NewObjectiveValue - OldObjectiveValue < 0) {
+        #value is decreasing, so we continue
+        OldObjectiveValue <- NewObjectiveValue
+      } else {
+        break 
+      }
     }
     
+    #Warn the user if it has not converged :
+    
+    if (iter==maxIter){print("maxIter reached without convergence")}
     
     # Optimizing W according to Algorithm 2
     
@@ -191,12 +190,11 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
       }
     }
     #sort it:
-    delta <- Delta[order(Delta)]
+    delta <- delta[order(delta)]
     
-    W <- algorithm_2(Delta, lambda)
+    W <- algorithm_2(delta, lambda, M)
   }
-  
-  
+  return(Y)
 }
 
     
@@ -204,18 +202,17 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
 
 
 
-algorithm_4 <- function(X_list, d_list, lambda, iterMax, k, n) {
+algorithm_4 <- function(X_list, lambda, iterMax, k, n) {
   # X_list = [X_1, X_2, ..., X_k] i.e. the data tables/matrix
-  # d_list = [d_1, d_2, ..., d_k]
   # lamda is the tuning parameter
+  # iterMax is the maximum number of iterations for algorithm 3
   
   # Computing the local sample-spectrum 
   # of each data type according to Algorithm 1:
   Ys_ds_list <- lapply(X_list, algorithm_1)
-  
+  k = length(Ys_ds_list)
+  n = Ys_ds_list[[1]]
   
   # Optimizing Y according to Algorithm 3:
   Y <- algorithm_3(Ys_ds_list, k, n, lambda, maxIter)
-  
-  
 }

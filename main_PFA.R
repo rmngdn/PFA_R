@@ -25,16 +25,10 @@ output_fileName <- "global_sample_spectrum.csv"
 ## Import the data:
 
 # for example
-data_list <- lapply(fileName_list, read.table)
-
-## Capture the local sample-spectrum for each biological data type
-
-Ys_ds_list <- lapply(data_list, algorithm_1)
-
-Ys_list <- Ys_ds_list[[1]]
-ds_list <- list()
-
-
+X_list <- lapply(fileName_list, read.table)
+lambda = 1
+iterMax = 1000
+Y <- algorithm_4(X_list, lambda, iterMax)
 
 
 
