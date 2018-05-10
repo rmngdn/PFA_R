@@ -25,6 +25,7 @@ M = (1/s_1)*(w_1*(eye(sample_num)-(x_1*w_1)\(x_1*w_1)))*(w_1*(eye(sample_num)-(x
 
 % compute the global sample-spectrum (Y) based on the eigenvalue decomposition
 [Y,Eigen_Value_all]=Find_K_Min_Eigen(M,d_num+1);
+
 Y=Y(:,2:(d_num+1))';
 
 L_1 = (Y*w_1)/(x_1*w_1);
@@ -50,7 +51,7 @@ w=w_1;
 
 
 end
-
+iter
 Y=Y_final;
 w=w_final;
 

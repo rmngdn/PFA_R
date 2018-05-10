@@ -9,6 +9,9 @@
 # The variables's names are those of the article 
 # most of the time
 
+# We need the library MASS for the pseudo-inverse 
+library(MASS)
+
 
 #### Algorithm 1 ####
 
@@ -66,7 +69,7 @@ algorithm_1 <- function(X_i_data) {
   # Compute Y_i:
   Y_i <-  t(as.matrix(eigs$vectors[,1:d_i])) %*% X_i_bar # Ui_di' * X_i_bar
   colnames(Y_i) <- colnames(X_i)
-  return(list(Y_i, d_i))
+  return(list("Y_i" = Y_i, "d_i" = d_i))
 }
 
 
@@ -107,22 +110,20 @@ algorithm_2 <- function(delta,lambda,M) {
 
 
 
-algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
+algorithm_3 <- function(Ys_list, ds_list, k, n, lambda, maxIter) {
   # Ys_ds_list is the result of the function algorithm_1
   # k is the number of data types
   # n is the number of patients/samples
   # lambda is the tuning parameter
   
-  # Extract Ys 
-  Ys_list <- Ys_ds_list[[1]]
-  
   # Calculate d
-  d = min(Ys_ds_list[[2]])
+  d = min(ds_list)
   
   # Initialize W
   M <- k*n
   W <- (1/M)*matrix(1, M, 1)
   
+  OldErrorValue <- Inf
   
   for (iter in 1:maxIter) {
     # Optimize Y according to formula (10) in main text:
@@ -134,48 +135,49 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
     W_List <- vector('list', k)
     V_List <- vector('list', k)
     for (i in 1:k) {
-      W_i <- diag(W[(i-1)*n + 1, i*n])
-      W_List[i] <- W_i #used later to calculate delta
-      tmp <- (diag(1,n,n) - (1/n)*matrix(1,n,n)) 
-              %*%
+      W_i <- diag(W[((i-1)*n + 1):(i*n)])
+      W_List[[i]] <- W_i #used later to calculate delta
+      tmp <- (diag(1,n,n) - (1/n)*matrix(1,n,n)) %*%
               (diag(1,n,n) - ginv(Ys_list[[i]]%*%W_i)%*%(Ys_list[[i]]%*%W_i))  
-      V_List[i] <- norm(tmp,type = "F")#used later to calculate delta
-      Phi <- Phi + (1/V_List[i])*(tmp%*%t(tmp))
+      V_List[[i]] <- norm(tmp,type = "F")#used later to calculate delta
+      Phi <- Phi + (1/V_List[[i]])*(tmp%*%t(tmp))
     }
+    
+    rm(tmp, W_i)
     
       # Compute the eigens of Phi
     
     eigsPhi <- eigen(x = Phi, symmetric = TRUE)
+    
     #Y is composed of the d eigen vectors of the 2nd to (d+1)th smallest 
     #eigen values:
-    Y <- eigsPhi$vectors[(n-1):(n-d)] 
-    
+    Y <- eigsPhi$vectors[,(n-1):(n-d)]
+    Y <- t(Y) # It's not written in the article but it's done in the matlab script and 
+              # we can't do the matrix products with Y if we don't transpose!
     
     # Calculate the value of tr(Y*Phi*Y') + lambda*norm2(W)^2 
     # and see if it has decreased compared to the previous iteration
+    NewErrorValue <- sum( diag( Y %*% Phi %*% t(Y) ) ) + lambda * t(W) %*% W 
     
-    NewObjectiveValue <- sum(diag(Y%*%Phi%*%t(Y))) + lamda*t(W)%*%W 
     
-    if (iter==1){
-      OldObjectiveValue <- NewObjectiveValue
-    } else {
-      if (NewObjectiveValue - OldObjectiveValue < 0) {
+    if (NewErrorValue - OldErrorValue < 0) {
         #value is decreasing, so we continue
-        OldObjectiveValue <- NewObjectiveValue
-      } else {
-        break 
-      }
+        OldErrorValue <- NewErrorValue
+    } else {
+      break
     }
+    
     
     #Warn the user if it has not converged :
     
     if (iter==maxIter){print("maxIter reached without convergence")}
     
+    
     # Optimizing W according to Algorithm 2
     
     
       # Calculate Delta:
-    delta <- vector('list', M)
+    delta <- vector('numeric', M)
     for (i in 1:k) {
       for (j in 1:n) {
         delta[i*j] <-(norm(Y[,j]
@@ -186,7 +188,7 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
                              ginv(Ys_list[[i]]%*%W_List[[i]])
                              %*%
                              Ys_list[[i]][,j]
-                          , "F")^2)/norm(V_List[[i]],"F")
+                          , "F")^2)/V_List[[i]]
       }
     }
     #sort it:
@@ -194,6 +196,8 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
     
     W <- algorithm_2(delta, lambda, M)
   }
+  print("Number of iterations = ")
+  print(iter)
   return(Y)
 }
 
@@ -202,17 +206,28 @@ algorithm_3 <- function(Ys_ds_list, k, n, lambda, maxIter) {
 
 
 
-algorithm_4 <- function(X_list, lambda, iterMax, k, n) {
+algorithm_4 <- function(X_list, lambda, maxIter) {
   # X_list = [X_1, X_2, ..., X_k] i.e. the data tables/matrix
   # lamda is the tuning parameter
-  # iterMax is the maximum number of iterations for algorithm 3
+  # maxIter is the maximum number of iterations for algorithm 3
+  
+  k = length(X_list) # number of data types
+  n = dim(X_list[[1]])[2] # number of samples
   
   # Computing the local sample-spectrum 
   # of each data type according to Algorithm 1:
-  Ys_ds_list <- lapply(X_list, algorithm_1)
-  k = length(Ys_ds_list)
-  n = Ys_ds_list[[1]]
+  Ys_list <- vector('list', k)
+  ds_list <- vector('integer', k)
+  for (i in 1:k) {
+    tmp <- algorithm_1(X_list[[i]])
+    Ys_list[[i]] <- tmp[[1]]
+    ds_list[[i]] <- tmp[[2]]
+  }
+  rm(tmp)# remove tmp from workspace
   
   # Optimizing Y according to Algorithm 3:
-  Y <- algorithm_3(Ys_ds_list, k, n, lambda, maxIter)
+  Y <- algorithm_3(Ys_list, ds_list, k, n, lambda, maxIter)
 }
+
+
+

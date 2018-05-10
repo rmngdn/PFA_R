@@ -27,7 +27,9 @@ output_fileName <- "global_sample_spectrum.csv"
 # for example
 X_list <- lapply(fileName_list, read.table)
 lambda = 1
-iterMax = 1000
+iterMax = 50
+
+source("PFA_algorithms.R")
 Y <- algorithm_4(X_list, lambda, iterMax)
 
 
