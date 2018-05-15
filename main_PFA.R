@@ -1,10 +1,10 @@
-#MAIN PFA
-#DONT FORGET THE REFERENCES 
-#AND TO PACKAGE IT IN THE END
+# Test of PFA
+# article of reference:
+# https://doi.org/10.1093/bioinformatics/btx176 
 
 pathToYourWD <- "~/Documents/Local_Work/PFA to R"
 setwd(pathToYourWD)
-source("PFA_algorithms.R")
+source("PFA_algorithm_v2.R")
 
 
 
@@ -29,15 +29,15 @@ X_list <- lapply(fileName_list, read.table)
 lambda = 1
 iterMax = 50
 
-source("PFA_algorithms.R")
+source("PFA_algorithm_v2.R")
 Y <- algorithm_4(X_list, lambda, iterMax)
 
 
+result <- kmeans(t(Y), 3)
 
+Y_matlab <- read.csv("global_sample_spectrum.csv", header = FALSE)
 
-
-
-
-
-
+result2 <- kmeans(t(Y_matlab), 3)
+myCluster <- result$cluster
+matlabCluster <- result2$cluster
 
