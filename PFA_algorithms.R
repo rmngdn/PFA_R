@@ -4,7 +4,7 @@
 #### Description ####
 
 # Here is the R version of the Pattern Fusion Analysis (PFA)
-# article link:
+# article link: https://doi.org/10.1093/bioinformatics/btx176 
 
 # The variables's names are those of the article 
 # most of the time
@@ -17,26 +17,25 @@ library(MASS)
 
 
 
-algorithm_1 <- function(X_i_data) {
+algorithm_1 <- function(X_i_data,n) {
+  # X_i_data is a table with features as rows and patients/samples as columns 
+  # n is the number of samples/patients
   
   # Compute X_i_bar:
   
   X_i <- as.matrix(X_i_data)
-  n <- dim(X_i)[2] #samples number
-  h <- dim(X_i)[1] #features number
-  ones <- matrix(1, n, n) # 11' with 1' = (1,1,1...,1) [1,n]
-  I <- diag(1, n, n)
-  X_i_bar <- X_i %*% (I - (1/n)*ones)
+  h_i <- dim(X_i)[1] #features number
+  X_i_bar <- X_i %*% (diag(1, n, n) - (1/n)*matrix(1, n, n))
   
-  # Compute the eigen pairs:
+  # Compute the eigen pairs of X_i_bar %*% t(X_i_bar):
   
-  if (h >= n) { #if the matrix has too much features
+  if (h_i >= n) { #if the matrix has too much features
     
-    #we compute t(X_i_bar) %*% X_i_bar instead of X_i_bar %*% t(X_i_bar) to drastically reduce the size
+    #we compute t(X_i_bar) %*% X_i_bar instead of X_i_bar %*% t(X_i_bar) to drastically reduce the time of calcul
     eigs <- eigen(t(X_i_bar)%*%X_i_bar, TRUE)
     
     #init a new data frame with the correct size:
-    tmp_vectors <- data.frame(matrix(0, h, n))
+    tmp_vectors <- data.frame(matrix(0, h_i, n))
     
     # the non-zero eigen values of X_i_bar %*% t(X_i_bar) are the same than t(X_i_bar) %*% X_i_bar
     # and for each non-zero eigen value lamda, the eigen vectors of X_i_bar %*% t(X_i_bar) are X_i_bar %*% eigVect, 
@@ -58,7 +57,7 @@ algorithm_1 <- function(X_i_data) {
   continue <- TRUE
   sumEigen <- sum(eigs$values)
 
-  while(continue) {#it stops for sure when d_i = n
+  while(continue) {#it stops for sure when d_i = n or h (if h < n)
     #eigen values are ordered
     if (sum(eigs$values[1:d_i])/sumEigen >= 0.8) {
       continue <- FALSE
@@ -68,10 +67,9 @@ algorithm_1 <- function(X_i_data) {
   }
   # Compute Y_i:
   Y_i <-  t(as.matrix(eigs$vectors[,1:d_i])) %*% X_i_bar # Ui_di' * X_i_bar
-  colnames(Y_i) <- colnames(X_i)
+  
   return(list("Y_i" = Y_i, "d_i" = d_i))
 }
-
 
 
 
@@ -121,9 +119,9 @@ algorithm_3 <- function(Ys_list, ds_list, k, n, lambda, maxIter) {
   
   # Initialize W
   M <- k*n
-  W <- (1/M)*matrix(1, M, 1)
+  W <- (1/M)*matrix(1, M, 1) #same weight for every instance (one instance per data type) of every sample/patient
   
-  OldErrorValue <- Inf
+  OldErrorValue <- Inf #init
   
   for (iter in 1:maxIter) {
     # Optimize Y according to formula (10) in main text:
@@ -135,7 +133,7 @@ algorithm_3 <- function(Ys_list, ds_list, k, n, lambda, maxIter) {
     W_List <- vector('list', k)
     V_List <- vector('list', k)
     for (i in 1:k) {
-      W_i <- diag(W[((i-1)*n + 1):(i*n)])
+      W_i <- diag(sqrt(W[((i-1)*n + 1):(i*n)]))
       W_List[[i]] <- W_i #used later to calculate delta
       tmp <- (diag(1,n,n) - (1/n)*matrix(1,n,n)) %*%
               (diag(1,n,n) - ginv(Ys_list[[i]]%*%W_i)%*%(Ys_list[[i]]%*%W_i))  
@@ -180,22 +178,23 @@ algorithm_3 <- function(Ys_list, ds_list, k, n, lambda, maxIter) {
     delta <- vector('numeric', M)
     for (i in 1:k) {
       for (j in 1:n) {
-        delta[i*j] <-(norm(Y[,j]
-                          - Y%*%matrix(1,n,1)
-                          - Y%*%
-                            (diag(1,n,n) - (1/n)*matrix(1,n,n))
-                             %*%
-                             ginv(Ys_list[[i]]%*%W_List[[i]])
-                             %*%
-                             Ys_list[[i]][,j]
-                          , "F")^2)/V_List[[i]]
+        L_i <- 
+        tmp2 <- Y[,j]
+               - Y%*%matrix(1,n,1)/n 
+               - Y%*%(diag(1,n,n) - (1/n)*matrix(1,n,n))%*%ginv(Ys_list[[i]]%*%W_List[[i]])%*%Ys_list[[i]][,j]
+                
+        delta[i*j] <-(t(tmp2)%*%tmp2)/V_List[[i]]
       }
     }
+    rm(tmp2)
+    
     #sort it:
     delta <- delta[order(delta)]
     
     W <- algorithm_2(delta, lambda, M)
+   
   }
+  
   print("Number of iterations = ")
   print(iter)
   return(Y)
@@ -214,19 +213,21 @@ algorithm_4 <- function(X_list, lambda, maxIter) {
   k = length(X_list) # number of data types
   n = dim(X_list[[1]])[2] # number of samples
   
-  # Computing the local sample-spectrum 
+  # 1. Computing the local sample-spectrum 
   # of each data type according to Algorithm 1:
   Ys_list <- vector('list', k)
   ds_list <- vector('integer', k)
   for (i in 1:k) {
-    tmp <- algorithm_1(X_list[[i]])
+    tmp <- algorithm_1(X_list[[i]], n)
     Ys_list[[i]] <- tmp[[1]]
     ds_list[[i]] <- tmp[[2]]
   }
   rm(tmp)# remove tmp from workspace
   
-  # Optimizing Y according to Algorithm 3:
+  # 2. Optimizing Y according to Algorithm 3:
   Y <- algorithm_3(Ys_list, ds_list, k, n, lambda, maxIter)
+  colnames(Y) <- colnames(X_list[[1]]) # samples names
+  return(Y)
 }
 
 
