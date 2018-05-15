@@ -19,7 +19,7 @@ fileName_list <- list(gene_fileName,
                       methy_fileName, 
                       miRNA_fileName)
 
-# output:
+# output:    
 output_fileName <- "global_sample_spectrum.csv"
 
 ## Import the data:

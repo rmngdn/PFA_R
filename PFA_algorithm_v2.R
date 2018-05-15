@@ -153,10 +153,12 @@ algorithm_3 <- function(Y_list, d_list, k, n, lambda, maxIter) {
       W_i <- diag(sqrt(W[((i-1)*n + 1):(i*n)]), n, n)
       W_List[[i]] <- W_i #used later to calculate delta
       
-      # Compute
       
       #Let's decompose it :
+      
       S_List[[i]] <- sum(diag( (diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]])%*%t(diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]])))
+      
+      
       print("S_i = ")
       print(S_List[[i]])
       tmp2 <- ginv(Y_list[[i]]%*%W_i) %*% (Y_list[[i]]%*%W_i)
