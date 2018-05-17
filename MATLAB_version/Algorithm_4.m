@@ -23,7 +23,7 @@ s_3 = sum(diag(((eye(sample_num)-(x_3)\(x_3)))*((eye(sample_num)-(x_3)\(x_3)))')
 
 M = (1/s_1)*(w_1*(eye(sample_num)-(x_1*w_1)\(x_1*w_1)))*(w_1*(eye(sample_num)-(x_1*w_1)\(x_1*w_1)))'+(1/s_2)*(w_2*(eye(sample_num)-(x_2*w_2)\(x_2*w_2)))*(w_2*(eye(sample_num)-(x_2*w_2)\(x_2*w_2)))'+(1/s_3)*(w_3*(eye(sample_num)-(x_3*w_3)\(x_3*w_3)))*(w_3*(eye(sample_num)-(x_3*w_3)\(x_3*w_3)))';
 test =((x_1*w_1)\(x_1*w_1));
-test(1:5,1:5);
+test(1:5,1:5)
 
 w_1(1:3,1:3)
 % compute the global sample-spectrum (Y) based on the eigenvalue decomposition

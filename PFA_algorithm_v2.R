@@ -24,10 +24,11 @@ algorithm_1 <- function(X_i_data,n) {
   X_i <- as.matrix(X_i_data)
   h_i <- dim(X_i)[1] #features number
   
-  # Centralize X_i for each feature ? 
+  # Center X_i for each feature: 
   
-  #X_mean <- matrix(rowMeans(X_i)) %*% matrix(1,1,n)
-  #X_i <- X_i - X_mean
+  X_mean <- (1/n) * X_i %*% matrix(1,n,n)
+  X_i <- X_i - X_mean
+  
   
   #
    
@@ -154,21 +155,21 @@ algorithm_3 <- function(Y_list, d_list, k, n, lambda, maxIter) {
       W_List[[i]] <- W_i #used later to calculate delta
       
       
-      #Let's decompose it :
+      #We use here the matlab version of division. They use left matrix division instead of pseudo inverse.
       
-      S_List[[i]] <- sum(diag( (diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]])%*%t(diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]])))
+      S_List[[i]] <- sum(diag( (diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]]%*%t(diag(1,n,n) - ginv(Y_list[[i]])%*%Y_list[[i]] )) ) )
       
       
       print("S_i = ")
       print(S_List[[i]])
-      tmp2 <- ginv(Y_list[[i]]%*%W_i) %*% (Y_list[[i]]%*%W_i)
+      tmp2 <- ginv(Y_list[[i]] %*% W_i) %*% Y_list[[i]] %*% W_i
       tmp <- W_i*(diag(1,n,n) - ginv(Y_list[[i]]%*%W_i)%*%(Y_list[[i]]%*%W_i) )
       Phi <- Phi + (1/S_List[[i]])*tmp%*%t(tmp)
       print("tmp2 = ")
       print(tmp2[1:5,1:5])
       rm(tmp2)
     }
-    View(W_List[[1]])
+    #View(W_List[[1]])
     #View(S_List)
     
     #View(Phi)
