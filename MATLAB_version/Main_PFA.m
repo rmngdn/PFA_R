@@ -3,7 +3,7 @@ gene_fileName = 'GLIO_Gene_Expression.txt';
 methy_fileName = 'GLIO_Methy_Expression.txt';
 mirna_fileName = 'GLIO_Mirna_Expression.txt';
 
-res_fileName = 'global_sample_spectrum.csv';
+res_fileName = 'global_sample_spectrum_centralized.csv';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% read input data for program
 data_gene = readtable(gene_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
@@ -18,7 +18,12 @@ data_1 = data_gene;
 data_2 = data_Methy;
 data_3 = data_Mirna;
 
-sample_num = size(data_1,2); 
+sample_num = size(data_1,2);
+
+% Centralization of the data
+data_1 = data_1 - (1/sample_num)*data_1*ones(sample_num);
+data_2 = data_2 - (1/sample_num)*data_2*ones(sample_num);
+data_3 = data_3 - (1/sample_num)*data_3*ones(sample_num);
 
 [u_1,eig_v_1]=Algorithm_1(data_1,sample_num);
 [u_2,eig_v_2]=Algorithm_1(data_2,sample_num);
