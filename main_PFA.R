@@ -30,14 +30,24 @@ lambda = 1
 iterMax = 50
 
 source("PFA_algorithm_v2.R")
-Y <- algorithm_4(X_list, lambda, iterMax)
+Y_PFA <- algorithm_4(X_list, lambda, iterMax)
 
 
-result <- kmeans(t(Y), 3)
+#set the function:
+clustFunc <- kmeans
+res <- clusGap(t(Y_PFA), clustFunc, 5, B = 200, d.power = 2, spaceH0 = "scaledPCA")       
+plot(res)
+print(res)
 
-Y_matlab <- read.csv("global_sample_spectrum.csv", header = FALSE)
+# Extract the optimal number of cluster
 
-result2 <- kmeans(t(Y_matlab), 3)
-myCluster <- result$cluster
-matlabCluster <- result2$cluster
+K_PFA <- 3 # see the print for the good value
 
+#Cluster
+result_PFA <- clustFunc(t(Y_PFA), K_PFA)
+cluster_PFA <- result_PFA$cluster
+
+# Let's plot the patients against the 2 biggest principal components:
+
+forPlot <- data.frame(t(Y_PFA))
+ggplot(forPlot) + aes(x=forPlot[,1], y = forPlot[,2]) + geom_point() 
