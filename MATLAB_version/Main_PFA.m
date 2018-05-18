@@ -1,59 +1,60 @@
 % I made some modifications on the initial version available at: 
 % http://sysbio.sibcb.ac.cn/cb/chenlab/images/PFApackage_0.1.rar
 
-
+% Output file name
+res_fileName = 'Y_GBM.csv';
 
 %% LOAD YOUR DATA:
 
-% %% TEST
-% % File names:
-% 
-% gene_fileName = 'TestData/GLIO_Gene_Expression.txt';
-% methy_fileName = 'TestData/GLIO_Methy_Expression.txt';
-% mirna_fileName = 'TestData/GLIO_Mirna_Expression.txt';
-% 
-% 
-% 
-% 
-% Output file name
-res_fileName = 'Y_asthmadata.csv';
-% 
-% 
-% % Have to adapt the importation method to your data format
-% 
-% data_gene = readtable(gene_fileName,'ReadRowNames', 1, 'HeaderLines', 0);
-% data_gene = table2array(data_gene(:,1:215)); %last column is an artefact of importation
-% 
-% 
-% data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
-% data_Methy = table2array(data_Methy(:,1:215)); %last column is an artefact of importation
-% 
-% data_Mirna = readtable(mirna_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
-% data_Mirna = table2array(data_Mirna(:,1:215)); %last column is an artefact of importation
+%% GBM
+% File names:
+
+gene_fileName = 'TestData/GLIO_Gene_Expression.txt';
+methy_fileName = 'TestData/GLIO_Methy_Expression.txt';
+mirna_fileName = 'TestData/GLIO_Mirna_Expression.txt';
+
+
+
+
+
+
+
+% Have to adapt the importation method to your data format
+
+data_gene = readtable(gene_fileName,'ReadRowNames', 1, 'HeaderLines', 0);
+data_gene = table2array(data_gene(:,1:215)); %last column is an artefact of importation
+
+
+data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+data_Methy = table2array(data_Methy(:,1:215)); %last column is an artefact of importation
+
+data_Mirna = readtable(mirna_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+data_Mirna = table2array(data_Mirna(:,1:215)); %last column is an artefact of importation
 
 %% ASTHMA
-proteo = table2array(readtable('TestData/proteomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
-transc = table2array(readtable('TestData/transcriptomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
+
+%proteo = table2array(readtable('/data/Datasets_Local/Asthma/proteomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
+%transc = table2array(readtable('/data/Datasets_Local/Asthma/transcriptomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% create dataList
 
 % characteristics of the data
 
-sample_num = 91;
-k = 2;
+sample_num = 215;
+k = 3; % number of data types
 
 dataList = cell(1,k);
-dataList{1}=proteo;
-dataList{2}=transc;
+dataList{1}= data_gene;
+dataList{2}= data_Methy;
+dataList{3}= data_Mirna;
 
 
 
-
-% Centralization of the data if needed
-for i = 1:k
-    dataList{i} = dataList{i} - (1/sample_num)*dataList{i}*ones(sample_num);
-end
+%% Centralization of the data if needed
+% for i = 1:k
+%     dataList{i} = dataList{i} - (1/sample_num)*dataList{i}*ones(sample_num);
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% capture the local sample-spectrum for each biological data type by Algorithm_1
 
