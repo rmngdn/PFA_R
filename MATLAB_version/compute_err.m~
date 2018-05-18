@@ -1,0 +1,19 @@
+function E_list = compute_err( w, sample_num, Y, L_list, xList, sList )
+
+%init
+for i in 1:k
+    E_list{i} = [];
+end
+
+for i=1:sample_num
+    for j in 1:k
+        E_list{j} = [E_list{j}; (1/sList{j})*w((j-1)*sample_num+i,1)*(Y(:,i)-L_list{i}*x_2(:,i))'*(Y(:,i)-L_2*x_2(:,i))];
+        
+        E_1 =[E_1; (1/s_1)*w(i,1)*(Y(:,i)-L_1*x_1(:,i))'*(Y(:,i)-L_1*x_1(:,i))];
+        E_2 =[E_2; (1/s_2)*w(sample_num+i,1)*(Y(:,i)-L_2*x_2(:,i))'*(Y(:,i)-L_2*x_2(:,i))];
+        E_3 =[E_3; (1/s_3)*w(2*sample_num+i,1)*(Y(:,i)-L_3*x_3(:,i))'*(Y(:,i)-L_3*x_3(:,i))];
+    end
+end
+
+end
+

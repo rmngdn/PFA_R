@@ -13,15 +13,23 @@
 library(MASS)
 
 
+showNames <- function(dataMatrix,stepName) {
+  print(paste0("Order of patient at step :",stepName))
+  print(colnames(dataMatrix)[1:3])
+}
+
 #### Algorithm 1 ####
 
 
 
-algorithm_1 <- function(X_i_data,n) {
+algorithm_1 <- function(X_i_data, n) {
   # X_i_data is a table with features as rows and patients/samples as columns 
   # n is the number of samples/patients
   
   X_i <- as.matrix(X_i_data)
+  print(dim(X_i))
+  #colnames(X_i) <- unlist(lapply(1:n, function(i) {return(paste0("patient_",i))}))
+  
   h_i <- dim(X_i)[1] #features number
   
   # Center X_i for each feature: 
@@ -74,7 +82,7 @@ algorithm_1 <- function(X_i_data,n) {
       d_i <- d_i + 1
     }
   }
-  View(eigs$vectors[1:10])
+  #View(eigs$vectors[1:10])
   # Compute Y_i: #HAVE TO REMOVE THE MINUS SIGN after tests 
   Y_i <-  -t(as.matrix(eigs$vectors[,1:d_i])) %*% X_i # Ui_di' * X_i {we put a minus sign to have the same thing than matlab but it doesnt change anything nornally}
   return(list("Y_i" = Y_i, "d_i" = d_i))
@@ -104,7 +112,7 @@ algorithm_2 <- function(delta, permutation,lambda, M) {
       break 
     }
   }
-  W <- matrix(0,M,1)
+  W <- matrix(0, M, 1)
   W_tmp <- matrix(0, M , 1)
   theta <- (2*lambda + sum(delta[1:N]))/N
   for (m in 1:N) {
@@ -112,7 +120,6 @@ algorithm_2 <- function(delta, permutation,lambda, M) {
   }
   # Then we place the values to the corresponding place in W
   W[permutation] <- W_tmp
-  View(W)
   return(W)
 }
 
@@ -164,15 +171,11 @@ algorithm_3 <- function(Y_list, d_list, k, n, lambda, maxIter) {
       print(S_List[[i]])
       tmp2 <- ginv(Y_list[[i]] %*% W_i) %*% Y_list[[i]] %*% W_i
       tmp <- W_i*(diag(1,n,n) - ginv(Y_list[[i]]%*%W_i)%*%(Y_list[[i]]%*%W_i) )
+      
       Phi <- Phi + (1/S_List[[i]])*tmp%*%t(tmp)
-      print("tmp2 = ")
-      print(tmp2[1:5,1:5])
-      rm(tmp2)
+      
     }
-    #View(W_List[[1]])
-    #View(S_List)
-    
-    #View(Phi)
+
     rm(tmp, W_i)
     
     # Compute the smallest eigen values (and associated vector) of Phi
@@ -185,7 +188,7 @@ algorithm_3 <- function(Y_list, d_list, k, n, lambda, maxIter) {
     Y <- eigsPhi$vectors[,(n-1):(n-d)]
     Y <- t(Y) # It's not written in the article but it's done in the matlab script and 
               # we can't do the matrix products with Y if we don't transpose!
-    #View(Y)
+    
     # Calculate the value of tr(Y*Phi*Y') + lambda*norm2(W)^2 
     # and see if it has decreased compared to the previous iteration
     err <- sum( diag( Y %*% Phi %*% t(Y) ) ) 
@@ -215,7 +218,7 @@ algorithm_3 <- function(Y_list, d_list, k, n, lambda, maxIter) {
     rm(tmp2)
     
     #sort it:
-    permutation <- order(delta) #keep this permutation 
+    permutation <- order(delta) #keep this permutation to sort W in the good order! (patient1_type1, patient2_type1, ... patient1_type2 .... patientn_typek)
     delta <- delta[permutation] # ascending order
     
     # Update W:
@@ -253,8 +256,9 @@ algorithm_4 <- function(X_list, lambda, maxIter) {
   rm(tmp)# remove tmp from workspace
   
   # 2. Optimizing Y according to Algorithm 3:
+  
   Y <- algorithm_3(Y_list, d_list, k, n, lambda, maxIter)
-  colnames(Y) <- colnames(X_list[[1]]) # samples names
+  #colnames(Y) <- colnames(X_list[[1]]) 
   return(Y)
 }
 

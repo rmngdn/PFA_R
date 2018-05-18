@@ -1,71 +1,99 @@
-%% set input data and output filename
-gene_fileName = 'GLIO_Gene_Expression.txt';
-methy_fileName = 'GLIO_Methy_Expression.txt';
-mirna_fileName = 'GLIO_Mirna_Expression.txt';
+% I made some modifications on the initial version available at: 
+% http://sysbio.sibcb.ac.cn/cb/chenlab/images/PFApackage_0.1.rar
 
-res_fileName = 'global_sample_spectrum_centralized.csv';
+
+
+%% LOAD YOUR DATA:
+
+% %% TEST
+% % File names:
+% 
+% gene_fileName = 'TestData/GLIO_Gene_Expression.txt';
+% methy_fileName = 'TestData/GLIO_Methy_Expression.txt';
+% mirna_fileName = 'TestData/GLIO_Mirna_Expression.txt';
+% 
+% 
+% 
+% 
+% Output file name
+res_fileName = 'Y_asthmadata.csv';
+% 
+% 
+% % Have to adapt the importation method to your data format
+% 
+% data_gene = readtable(gene_fileName,'ReadRowNames', 1, 'HeaderLines', 0);
+% data_gene = table2array(data_gene(:,1:215)); %last column is an artefact of importation
+% 
+% 
+% data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+% data_Methy = table2array(data_Methy(:,1:215)); %last column is an artefact of importation
+% 
+% data_Mirna = readtable(mirna_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
+% data_Mirna = table2array(data_Mirna(:,1:215)); %last column is an artefact of importation
+
+%% ASTHMA
+proteo = table2array(readtable('TestData/proteomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
+transc = table2array(readtable('TestData/transcriptomics.csv','ReadRowNames', 0, 'HeaderLines', 0));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% read input data for program
-data_gene = readtable(gene_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
-data_gene = table2array(data_gene(:,1:215));%last column is an artefact of importation
-data_Methy = readtable(methy_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
-data_Methy = table2array(data_Methy(:,1:215));
-data_Mirna = readtable(mirna_fileName, 'ReadRowNames', 1, 'HeaderLines', 0); 
-data_Mirna = table2array(data_Mirna(:,1:215));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% create dataList
+
+% characteristics of the data
+
+sample_num = 91;
+k = 2;
+
+dataList = cell(1,k);
+dataList{1}=proteo;
+dataList{2}=transc;
+
+
+
+
+% Centralization of the data if needed
+for i = 1:k
+    dataList{i} = dataList{i} - (1/sample_num)*dataList{i}*ones(sample_num);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% capture the local sample-spectrum for each biological data type by Algorithm_1
-data_1 = data_gene;
-data_2 = data_Methy;
-data_3 = data_Mirna;
 
-sample_num = size(data_1,2);
 
-% Centralization of the data
-data_1 = data_1 - (1/sample_num)*data_1*ones(sample_num);
-data_2 = data_2 - (1/sample_num)*data_2*ones(sample_num);
-data_3 = data_3 - (1/sample_num)*data_3*ones(sample_num);
+%Threshold for accuracy
+threshold=0.8; 
 
-[u_1,eig_v_1]=Algorithm_1(data_1,sample_num);
-[u_2,eig_v_2]=Algorithm_1(data_2,sample_num);
-[u_3,eig_v_3]=Algorithm_1(data_3,sample_num);
+% init dmin
+d_num = inf;
 
-d_1 =1;
-for d_1=1:sample_num
-    if sum(eig_v_1(1:d_1))/sum(eig_v_1)>0.8
-        break;
+xList = cell(1,k);
+
+for i = 1:k
+    [u_i, eig_v_i] = Algorithm_1(dataList{i},sample_num);
+    
+    d_i = 1;
+    for d_i=1:sample_num
+        if sum(eig_v_i(1:d_i))/sum(eig_v_i)>threshold
+            break;
+        end
     end
-end
-
-d_2 =1;
-for d_2=1:sample_num
-    if sum(eig_v_2(1:d_2))/sum(eig_v_2)>0.8
-        break;
+    % re-compute Algo 1 with the number d_i:
+    [u_i, eig_v_i] = Algorithm_1(dataList{i},d_i);
+    
+    % update dmin:
+    if d_i < d_num
+        d_num = d_i;
     end
-end
-
-d_3 =1;
-for d_3=1:sample_num
-    if sum(eig_v_3(1:d_3))/sum(eig_v_3)>0.8
-        break;
-    end
-end
-  
-[u_1,eig_v_1]=Algorithm_1(data_1,d_1);
-[u_2,eig_v_2]=Algorithm_1(data_2,d_2);
-[u_3,eig_v_3]=Algorithm_1(data_3,d_3);
-
-x_1 = u_1'*data_1; %% the local sample-spectrum
-x_2 = u_2'*data_2; %% the local sample-spectrum
-x_3 = u_3'*data_3; %% the local sample-spectrum
+    % compute x_i 
+    xList{i} = u_i'*dataList{i}; %% the local sample-spectrum
+end    
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% capture the global sample-spectrum according to Algorithm_4
-d_num = min([d_1,d_2,d_3]);
+
 
 iter_num =1000;
 lam_1 = 1;
 
-[Y,w,L_1,L_2,L_3] = Algorithm_4(x_1, x_2, x_3, sample_num, iter_num,  lam_1, d_num);%% Y is the global sample-spectrum
-sum(Y(:))
+[Y,w,L_list] = Algorithm_4(xList, sample_num, iter_num,  lam_1, d_num, k);%% Y is the global sample-spectrum
+
 
 csvwrite(res_fileName,Y);

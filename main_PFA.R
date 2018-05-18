@@ -25,7 +25,7 @@ output_fileName <- "global_sample_spectrum.csv"
 ## Import the data:
 
 # for example
-X_list <- lapply(fileName_list, read.table)
+X_list <- lapply(fileName_list, function(name) read.table(paste0("TestData/",name)))
 lambda = 1
 iterMax = 50
 
